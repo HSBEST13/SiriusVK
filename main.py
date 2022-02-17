@@ -9,11 +9,11 @@ from data.locations_worker import LocationsDb, select_best_location
 
 
 def get_index(index):
-    i = 0
+    counter = 0
     for j in INFO:
-        if i == index:
+        if counter == index:
             return j, INFO.get(j)
-        i += 1
+        counter += 1
 
 
 def write_start_message(user_id):
@@ -45,9 +45,14 @@ def write_pass_menu(user_id):
                      random_id=0, keyboard=main_pass_keyboard.get_keyboard())
 
 
+def write_main_cleaning(user_id):
+    vk.messages.send(user_id=user_id, message=f"Отлично, выберите, что вам интересно", random_id=0,
+                     keyboard=cleaning_day_keyboard.get_keyboard())
+
+
 def write_news_menu(user_id, ind):
     global INDEX
-    vk.messages.send(user_id=user_id, message=f"{get_index(INDEX)[0]}\n{get_index(INDEX)[-1]}", random_id=0,
+    vk.messages.send(user_id=user_id, message=f"🔥 {get_index(INDEX)[0]}\n\n{get_index(INDEX)[-1]}", random_id=0,
                      keyboard=list_keyboard.get_keyboard())
     INDEX += ind
 
@@ -86,12 +91,17 @@ for event in long_poll.listen():
             elif text == "✳ Сдать макулатуру":
                 share_location(event.user_id)
                 CATEGORY = "paper"
+            elif text == "✳ Сдать металл":
+                share_location(event.user_id)
+                CATEGORY = "metall"
             elif text == "📜 Главное меню":
                 write_start_message(event.user_id)
             elif text == "✳ Сдать мусор":
                 write_pass_menu(event.user_id)
             elif text == "✳ Эко - новости":
                 write_news_menu(event.user_id, 0)
+            elif text == "✳ Субботники":
+                pass  # TODO Субботники
             elif text == "Следующая новость ➡":
                 write_news_menu(event.user_id, 1)
             elif text == "⬅ Предыдущая новость":

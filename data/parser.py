@@ -17,5 +17,4 @@ def news_parser():
         for one_time_data in one_time_parser:
             text += one_time_data.text + " "
         sl[data.text] = text
-        # print(text + "\n" * 5)
     return sl

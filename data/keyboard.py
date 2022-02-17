@@ -21,6 +21,7 @@ main_inline_keyboard.add_button("✳ Отправить жалобу", color=red
 main_inline_keyboard.add_button("✳ Сдать мусор", color=blue)
 main_inline_keyboard.add_line()
 main_inline_keyboard.add_button("✳ Эко - новости", color=green)
+main_inline_keyboard.add_button("✳ Субботники", color=red)
 
 send_location = VkKeyboard(one_time=True)
 send_location.add_location_button(payload=True)
@@ -30,3 +31,6 @@ list_keyboard = VkKeyboard(inline=True)
 list_keyboard.add_button("⬅ Предыдущая новость", color=green)
 list_keyboard.add_button("Следующая новость ➡", color=green)
 
+cleaning_day_keyboard = VkKeyboard(inline=True)
+cleaning_day_keyboard.add_button("Организовать субботник", color=red)
+cleaning_day_keyboard.add_button("Найти подходящий мне субботник", color=red)
