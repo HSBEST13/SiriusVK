@@ -45,11 +45,6 @@ def write_pass_menu(user_id):
                      random_id=0, keyboard=main_pass_keyboard.get_keyboard())
 
 
-def write_main_cleaning(user_id):
-    vk.messages.send(user_id=user_id, message=f"Отлично, выберите, что вам интересно", random_id=0,
-                     keyboard=cleaning_day_keyboard.get_keyboard())
-
-
 def write_news_menu(user_id, ind):
     global INDEX
     vk.messages.send(user_id=user_id, message=f"🔥 {get_index(INDEX)[0]}\n\n{get_index(INDEX)[-1]}", random_id=0,
@@ -57,23 +52,42 @@ def write_news_menu(user_id, ind):
     INDEX += ind
 
 
+def write_bad_message(user_id):
+    global bad_flag
+    vk.messages.send(user_id, message="Осталось только поделится местоположением и скинуть фотографию этого места",
+                     random_id=0, keyboard=bad_keyboard.get_keyboard())
+    bad_flag = True
+
+
 vk_session = VkApi(token=TOKEN)
 vk = vk_session.get_api()
 long_poll = VkLongPoll(vk_session)
 locate_db = LocationsDb()
+write_flag = False
+pass_flag = False
+bad_flag = False
+user_info = {}
+file = open("file.txt", "w")
 INFO = news_parser()
 for event in long_poll.listen():
     if event.type == VkEventType.MESSAGE_NEW:
         if event.to_me:
             text = event.text
             try:
-                result = vk_session.method("messages.getById", {"message_ids": [event.message_id],
-                                                                "group_id": 189072320})
-                geolocation = result["items"][0]["geo"]["coordinates"]
-                lat, lon = geolocation["latitude"], geolocation["longitude"]
-                best_lat_lon, name, address = select_best_location(lat, lon, locate_db.select_category(CATEGORY))
-                send_best_location(event.user_id, name, address)
-                set_main_keyboard(event.user_id, "✅ Возвращена клавиатура")
+                if pass_flag:
+                    result = vk_session.method("messages.getById", {"message_ids": [event.message_id],
+                                                                    "group_id": 189072320})
+                    geolocation = result["items"][0]["geo"]["coordinates"]
+                    lat, lon = geolocation["latitude"], geolocation["longitude"]
+                    best_lat_lon, name, address = select_best_location(lat, lon, locate_db.select_category(CATEGORY))
+                    send_best_location(event.user_id, name, address)
+                    set_main_keyboard(event.user_id, "✅ Возвращена клавиатура")
+                    pass_flag = False
+                elif bad_flag:
+                    result = vk_session.method("messages.getById", {"message_ids": [event.message_id],
+                                                                    "group_id": 189072320})
+                    geolocation = result["items"][0]["geo"]["coordinates"]
+                    lat, lon = geolocation["latitude"], geolocation["longitude"]
             except KeyError:
                 pass
             if text == "Начать":
@@ -100,8 +114,8 @@ for event in long_poll.listen():
                 write_pass_menu(event.user_id)
             elif text == "✳ Эко - новости":
                 write_news_menu(event.user_id, 0)
-            elif text == "✳ Субботники":
-                pass  # TODO Субботники
+            elif text == "✳ Жалоба":
+                pass
             elif text == "Следующая новость ➡":
                 write_news_menu(event.user_id, 1)
             elif text == "⬅ Предыдущая новость":
@@ -110,5 +124,14 @@ for event in long_poll.listen():
                 except Exception:
                     write_news_menu(event.user_id, 0)
             else:
-                none_write_message(event.user_id)
+                if write_flag:
+                    try:
+                        photo_id = event.attachments["attach1"]
+                        user_id = event.user_id
+                        file.write(f"{user_id} {photo_id}")
+                    except Exception:
+                        pass
+                else:
+                    none_write_message(event.user_id)
             INFO = news_parser() if dt.datetime.now().time().minute == 0 else INFO
+
