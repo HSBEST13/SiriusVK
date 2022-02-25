@@ -17,7 +17,6 @@ main_keyboard = VkKeyboard()
 main_keyboard.add_button("📜 Главное меню", color=green)
 
 main_inline_keyboard = VkKeyboard(inline=True)
-main_inline_keyboard.add_button("✳ Отправить жалобу", color=red)
 main_inline_keyboard.add_button("✳ Сдать мусор", color=blue)
 main_inline_keyboard.add_line()
 main_inline_keyboard.add_button("✳ Эко - новости", color=green)

@@ -5,7 +5,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from data.config import *
 from data.keyboard import *
 from data.parser import news_parser
-from data.locations_worker import LocationsDb, select_best_location
+from data.locations_worker import LocationsDb, PhotoDb, select_best_location
 
 
 def get_index(index):
@@ -54,8 +54,9 @@ def write_news_menu(user_id, ind):
 
 def write_bad_message(user_id):
     global bad_flag
-    vk.messages.send(user_id, message="Осталось только поделится местоположением и скинуть фотографию этого места",
-                     random_id=0, keyboard=bad_keyboard.get_keyboard())
+    vk.messages.send(user_id=user_id,
+                     message="Осталось только поделится местоположением и скинуть фотографию этого места", random_id=0,
+                     keyboard=bad_keyboard.get_keyboard())
     bad_flag = True
 
 
@@ -63,11 +64,12 @@ vk_session = VkApi(token=TOKEN)
 vk = vk_session.get_api()
 long_poll = VkLongPoll(vk_session)
 locate_db = LocationsDb()
+photo_db = PhotoDb()
+photo_id, user_id, lat, lon = None, None, None, None
 write_flag = False
 pass_flag = False
 bad_flag = False
 user_info = {}
-file = open("file.txt", "w")
 INFO = news_parser()
 for event in long_poll.listen():
     if event.type == VkEventType.MESSAGE_NEW:
@@ -115,7 +117,7 @@ for event in long_poll.listen():
             elif text == "✳ Эко - новости":
                 write_news_menu(event.user_id, 0)
             elif text == "✳ Жалоба":
-                pass
+                write_bad_message(event.user_id)
             elif text == "Следующая новость ➡":
                 write_news_menu(event.user_id, 1)
             elif text == "⬅ Предыдущая новость":
@@ -124,14 +126,12 @@ for event in long_poll.listen():
                 except Exception:
                     write_news_menu(event.user_id, 0)
             else:
-                if write_flag:
+                if bad_flag:
                     try:
                         photo_id = event.attachments["attach1"]
                         user_id = event.user_id
-                        file.write(f"{user_id} {photo_id}")
                     except Exception:
-                        pass
+                        print("error")
                 else:
                     none_write_message(event.user_id)
             INFO = news_parser() if dt.datetime.now().time().minute == 0 else INFO
-

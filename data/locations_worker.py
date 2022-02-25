@@ -16,6 +16,16 @@ class LocationsDb:
         return returned
 
 
+class PhotoDb:
+    def __init__(self):
+        self.con = sqlite3.connect("data//photo.db")
+        self.cur = self.con.cursor()
+
+    def set_photo(self, user_id, photo_id, lat, lon):
+        self.cur.execute(f"""INSERT INTO (photo_id, user_id, lat_lon) VALUES '{photo_id}', '{user_id}', '{lat}_{lon}'""")
+        self.con.commit()
+
+
 def select_best_location(lat1, lon1, array):
     new_array = []
     for name, lat, lon, address in array:
