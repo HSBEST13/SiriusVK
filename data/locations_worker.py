@@ -22,7 +22,7 @@ class PhotoDb:
         self.cur = self.con.cursor()
 
     def set_photo(self, user_id, photo_id, lat, lon):
-        self.cur.execute(f"""INSERT INTO (photo_id, user_id, lat_lon) VALUES '{photo_id}', '{user_id}', '{lat}_{lon}'""")
+        self.cur.execute(f"""INSERT INTO photo (photo_id, user_id, lat_lon) VALUES ('{photo_id}', '{user_id}', '{lat}_{lon}')""")
         self.con.commit()
 
 

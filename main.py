@@ -60,6 +60,17 @@ def write_bad_message(user_id):
     bad_flag = True
 
 
+def write_some_message(user_id):
+    vk.messages.send(user_id=user_id,
+                     message="Отлично, поделитесь местоположением", random_id=0,
+                     keyboard=bad_keyboard.get_keyboard())
+
+
+def write_some_message2(user_id):
+    vk.messages.send(user_id=user_id,
+                     message="Отлично, осталось скинуть фотографию", random_id=0)
+
+
 vk_session = VkApi(token=TOKEN)
 vk = vk_session.get_api()
 long_poll = VkLongPoll(vk_session)
@@ -90,6 +101,7 @@ for event in long_poll.listen():
                                                                     "group_id": 189072320})
                     geolocation = result["items"][0]["geo"]["coordinates"]
                     lat, lon = geolocation["latitude"], geolocation["longitude"]
+                    write_some_message2(event.user_id)
             except KeyError:
                 pass
             if text == "Начать":
@@ -130,8 +142,15 @@ for event in long_poll.listen():
                     try:
                         photo_id = event.attachments["attach1"]
                         user_id = event.user_id
+                        if lat is None:
+                            write_some_message(event.user_id)
                     except Exception:
-                        print("error")
+                        pass
                 else:
                     none_write_message(event.user_id)
             INFO = news_parser() if dt.datetime.now().time().minute == 0 else INFO
+            if photo_id is not None and user_id is not None and lat is not None and lon is not None:
+                photo_db.set_photo(user_id, photo_id, lat, lon)
+                bad_flag = False
+                photo_id, user_id, lat, lon = None, None, None, None
+                set_main_keyboard(event.user_id, "✅ Возвращена клавиатура")
