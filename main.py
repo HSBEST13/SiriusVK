@@ -5,7 +5,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from data.config import *
 from data.keyboard import *
 from data.parser import news_parser
-from data.locations_worker import LocationsDb, PhotoDb, select_best_location
+from data.db_worker import LocationsDb, PhotoDb, select_best_location
 
 
 def get_index(index):
@@ -17,37 +17,50 @@ def get_index(index):
 
 
 def write_start_message(user_id):
-    vk.messages.send(user_id=user_id, message="🏚 Главное меню", random_id=0,
+    vk.messages.send(user_id=user_id,
+                     message="🏚 Главное меню",
+                     random_id=0,
                      keyboard=main_inline_keyboard.get_keyboard())
 
 
 def set_main_keyboard(user_id, message):
-    vk.messages.send(user_id=user_id, message=message, random_id=0,
+    vk.messages.send(user_id=user_id,
+                     message=message,
+                     random_id=0,
                      keyboard=main_keyboard.get_keyboard())
 
 
 def share_location(user_id):
-    vk.messages.send(user_id=user_id, message="📩 Отлично, осталось только поделится своим местоположением",
-                     keyboard=send_location.get_keyboard(), random_id=0)
+    vk.messages.send(user_id=user_id,
+                     message="📩 Отлично, осталось только поделится своим местоположением",
+                     keyboard=send_location.get_keyboard(),
+                     random_id=0)
 
 
 def none_write_message(user_id):
-    vk.messages.send(user_id=user_id, message="‼ Ничего вводить не требуется", random_id=0)
+    vk.messages.send(user_id=user_id,
+                     message="‼ Ничего вводить не требуется",
+                     random_id=0)
 
 
 def send_best_location(user_id, name, address):
-    vk.messages.send(user_id=user_id, message=f"🏠 Адрес: {address}\n🔎 Название организации: {name}\n"
-                                              f"И помни:\n{random.choice(QUOTES)}", random_id=0)
+    vk.messages.send(user_id=user_id,
+                     message=f"🏠 Адрес: {address}\n🔎 Название организации: {name}\n"
+                             f"И помни:\n{random.choice(QUOTES)}",
+                     random_id=0)
 
 
 def write_pass_menu(user_id):
-    vk.messages.send(user_id=user_id, message=f"⁉ Вот какой мусор мы вам можем помочь сдать",
-                     random_id=0, keyboard=main_pass_keyboard.get_keyboard())
+    vk.messages.send(user_id=user_id,
+                     message=f"⁉ Вот какой мусор мы вам можем помочь сдать",
+                     random_id=0,
+                     keyboard=main_pass_keyboard.get_keyboard())
 
 
 def write_news_menu(user_id, ind):
     global INDEX
-    vk.messages.send(user_id=user_id, message=f"🔥 {get_index(INDEX)[0]}\n\n{get_index(INDEX)[-1]}", random_id=0,
+    vk.messages.send(user_id=user_id, message=f"🔥 {get_index(INDEX)[0]}\n\n{get_index(INDEX)[-1][:4000]}",
+                     random_id=0,
                      keyboard=list_keyboard.get_keyboard())
     INDEX += ind
 
@@ -55,20 +68,22 @@ def write_news_menu(user_id, ind):
 def write_bad_message(user_id):
     global bad_flag
     vk.messages.send(user_id=user_id,
-                     message="Осталось только поделится местоположением и скинуть фотографию этого места", random_id=0,
+                     message="Осталось только поделится местоположением и скинуть фотографию этого места",
+                     random_id=0,
                      keyboard=bad_keyboard.get_keyboard())
     bad_flag = True
 
 
 def write_some_message(user_id):
     vk.messages.send(user_id=user_id,
-                     message="Отлично, поделитесь местоположением", random_id=0,
+                     message="🌍 Отлично, поделитесь местоположением", random_id=0,
                      keyboard=bad_keyboard.get_keyboard())
 
 
 def write_some_message2(user_id):
     vk.messages.send(user_id=user_id,
-                     message="Отлично, осталось скинуть фотографию", random_id=0)
+                     message="📲 Отлично, осталось скинуть фотографию",
+                     random_id=0)
 
 
 vk_session = VkApi(token=TOKEN)
@@ -110,28 +125,39 @@ for event in long_poll.listen():
             elif text == "✳ Сдать батарейки":
                 share_location(event.user_id)
                 CATEGORY = "batteries"
+                pass_flag = True
             elif text == "✳ Сдать Раздельный мусор":
                 share_location(event.user_id)
                 CATEGORY = "waist"
+                pass_flag = True
             elif text == "✳ Сдать стекло":
                 share_location(event.user_id)
                 CATEGORY = "glass"
+                pass_flag = True
             elif text == "✳ Сдать макулатуру":
                 share_location(event.user_id)
                 CATEGORY = "paper"
+                pass_flag = True
             elif text == "✳ Сдать металл":
                 share_location(event.user_id)
                 CATEGORY = "metall"
+                pass_flag = True
             elif text == "📜 Главное меню":
                 write_start_message(event.user_id)
             elif text == "✳ Сдать мусор":
                 write_pass_menu(event.user_id)
             elif text == "✳ Эко - новости":
-                write_news_menu(event.user_id, 0)
+                try:
+                    write_news_menu(event.user_id, 0)
+                except Exception:
+                    write_news_menu(event.user_id, 1)
             elif text == "✳ Жалоба":
                 write_bad_message(event.user_id)
             elif text == "Следующая новость ➡":
-                write_news_menu(event.user_id, 1)
+                try:
+                    write_news_menu(event.user_id, 1)
+                except Exception:
+                    write_news_menu(event.user_id, 0)
             elif text == "⬅ Предыдущая новость":
                 try:
                     write_news_menu(event.user_id, -1)
