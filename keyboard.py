@@ -1,4 +1,5 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+
 blue, white, green, red = VkKeyboardColor.PRIMARY, VkKeyboardColor.SECONDARY, VkKeyboardColor.POSITIVE, \
                           VkKeyboardColor.NEGATIVE
 

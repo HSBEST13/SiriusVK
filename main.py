@@ -1,11 +1,12 @@
 import random
+import requests
+from bs4 import BeautifulSoup
 import datetime as dt
 from vk_api import VkApi
 from vk_api.longpoll import VkLongPoll, VkEventType
-from data.config import *
-from data.keyboard import *
-from data.parser import news_parser
-from data.db_worker import LocationsDb, PhotoDb, select_best_location
+from config import *
+from keyboard import *
+from db_worker import LocationsDb, PhotoDb, select_best_location
 
 
 def get_index(index):
@@ -14,6 +15,24 @@ def get_index(index):
         if counter == index:
             return j, INFO.get(j)
         counter += 1
+
+
+def news_parser():
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.text, "html.parser")
+    all_news = soup.findAll("a", class_="list-item__title color-font-hover-only", href=True)
+    print(all_news)
+    sl = {}
+    for data in all_news:
+        name_of_new, link = data.text, data["href"]
+        one_time_page = requests.get(link)
+        one_time_soup = BeautifulSoup(one_time_page.text, "html.parser")
+        one_time_parser = one_time_soup.findAll("div", class_="article__text")
+        text = ""
+        for one_time_data in one_time_parser:
+            text += one_time_data.text + " "
+        sl[data.text] = text
+    return sl
 
 
 def write_start_message(user_id):
@@ -59,9 +78,13 @@ def write_pass_menu(user_id):
 
 def write_news_menu(user_id, ind):
     global INDEX
-    vk.messages.send(user_id=user_id, message=f"🔥 {get_index(INDEX)[0]}\n\n{get_index(INDEX)[-1][:4000]}",
-                     random_id=0,
-                     keyboard=list_keyboard.get_keyboard())
+    try:
+        vk.messages.send(user_id=user_id, message=f"🔥 {get_index(INDEX)[0]}\n\n{get_index(INDEX)[-1][:4000]}",
+                         random_id=0,
+                         keyboard=list_keyboard.get_keyboard())
+    except TypeError:
+        vk.messages.send(user_id=user_id, message=f"🔥 Раздел временно не работает из-за проблем с библиотеками",
+                         random_id=0)
     INDEX += ind
 
 

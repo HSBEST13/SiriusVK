@@ -3,7 +3,7 @@ import sqlite3
 
 class LocationsDb:
     def __init__(self):
-        self.con = sqlite3.connect("data//locations.db")
+        self.con = sqlite3.connect("locations.db")
         self.cur = self.con.cursor()
 
     def select_category(self, category):
@@ -18,7 +18,7 @@ class LocationsDb:
 
 class PhotoDb:
     def __init__(self):
-        self.con = sqlite3.connect("data//photo.db")
+        self.con = sqlite3.connect("photo.db")
         self.cur = self.con.cursor()
 
     def set_photo(self, user_id, photo_id, lat, lon):
